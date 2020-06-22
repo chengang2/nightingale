@@ -14,13 +14,14 @@ type Team struct {
 	Ident      string `json:"ident"`
 	Name       string `json:"name"`
 	Mgmt       int    `json:"mgmt"`
+	Token      string `json:"token"`
 	AdminObjs  []User `json:"admin_objs" xorm:"-"`
 	MemberObjs []User `json:"member_objs" xorm:"-"`
 }
 
 func (t *Team) Del() error {
 	session := DB["uic"].NewSession()
-	defer session.Clone()
+	defer session.Close()
 
 	if err := session.Begin(); err != nil {
 		return err
@@ -111,7 +112,7 @@ func safeUserIds(ids []int64) ([]int64, error) {
 	return ret, nil
 }
 
-func (t *Team) Modify(ident, name string, mgmt int, admins, members []int64) error {
+func (t *Team) Modify(ident, name string, mgmt int, admins, members []int64, token string) error {
 	adminIds, err := safeUserIds(admins)
 	if err != nil {
 		return err
@@ -145,6 +146,7 @@ func (t *Team) Modify(ident, name string, mgmt int, admins, members []int64) err
 	t.Ident = ident
 	t.Name = name
 	t.Mgmt = mgmt
+	t.Token = token
 
 	if err = t.CheckFields(); err != nil {
 		return err
@@ -157,7 +159,7 @@ func (t *Team) Modify(ident, name string, mgmt int, admins, members []int64) err
 		return err
 	}
 
-	if _, err = session.Where("id=?", t.Id).Cols("ident", "name", "mgmt").Update(t); err != nil {
+	if _, err = session.Where("id=?", t.Id).Cols("ident", "name", "mgmt", "token").Update(t); err != nil {
 		session.Rollback()
 		return err
 	}
@@ -184,7 +186,7 @@ func (t *Team) Modify(ident, name string, mgmt int, admins, members []int64) err
 	return session.Commit()
 }
 
-func TeamAdd(ident, name string, mgmt int, admins, members []int64) error {
+func TeamAdd(ident, name string, mgmt int, admins, members []int64, token string) error {
 	adminIds, err := safeUserIds(admins)
 	if err != nil {
 		return err
@@ -207,6 +209,7 @@ func TeamAdd(ident, name string, mgmt int, admins, members []int64) error {
 		Ident: ident,
 		Name:  name,
 		Mgmt:  mgmt,
+		Token: token,
 	}
 
 	if err = t.CheckFields(); err != nil {

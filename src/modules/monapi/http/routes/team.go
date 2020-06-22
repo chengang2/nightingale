@@ -33,13 +33,14 @@ type teamForm struct {
 	Mgmt    int     `json:"mgmt"`
 	Admins  []int64 `json:"admins"`
 	Members []int64 `json:"members"`
+	Token   string  `json:"token"`
 }
 
 func teamAddPost(c *gin.Context) {
 	var f teamForm
 	errors.Dangerous(c.ShouldBind(&f))
 
-	renderMessage(c, model.TeamAdd(f.Ident, f.Name, f.Mgmt, f.Admins, f.Members))
+	renderMessage(c, model.TeamAdd(f.Ident, f.Name, f.Mgmt, f.Admins, f.Members, f.Token))
 }
 
 func teamPut(c *gin.Context) {
@@ -61,7 +62,7 @@ func teamPut(c *gin.Context) {
 		errors.Bomb("no privilege")
 	}
 
-	renderMessage(c, t.Modify(f.Ident, f.Name, f.Mgmt, f.Admins, f.Members))
+	renderMessage(c, t.Modify(f.Ident, f.Name, f.Mgmt, f.Admins, f.Members, f.Token))
 }
 
 func teamDel(c *gin.Context) {
